@@ -1,6 +1,7 @@
 import tkinter
 
 from packs.gui_generator import FileSelector
+from packs.execute_generator import ExecuteGenerator
 
 
 if __name__ == "__main__":

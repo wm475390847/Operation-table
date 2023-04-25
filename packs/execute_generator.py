@@ -100,26 +100,27 @@ class ExecuteGenerator:
 
             # 取出对应的规则
             a = key.split("_")[0] if "_" in key else key
-            if a in rule_dict:
-                rule = rule_dict[a]
+            rule = rule_dict.get(a)
+            if rule:
+                # 插入计算方式
+                new_sheet.write(8, 0, rule.formula_mode)
 
-            # 插入计算方式
-            new_sheet.write(8, 0, rule.formula_mode)
+                # 插入方块
+                for i, diamond in zip(range(40, 47, 2), [rule.diamond_1, rule.diamond_2, rule.diamond_3, rule.diamond_4]):
+                    new_sheet.write(i, 0, diamond)
 
-            # 插入方块
-            for i, diamond in zip(
-                range(40, 47, 2),
-                [rule.diamond_1, rule.diamond_2, rule.diamond_3, rule.diamond_4],
-            ):
-                new_sheet.write(i, 0, diamond)
+                # 插入英文代号
+                for i, j in [(3, 4), (10, 1), (20, 1), (30, 1)]:
+                    new_sheet.write(i, j, rule.en)
 
-            # 插入英文代号
-            for i, j in [(3, 4), (10, 1), (20, 1), (30, 1)]:
-                new_sheet.write(i, j, rule.en)
+                # 判断是否存在三个NC
+                three_NC = rule.three_NC
+            else:
+                three_NC = ""  # 如果找不到对应规则则将 three_NC 设置为空字符串
 
-            # 插入试验号&NC
-            three_NC = rule.three_NC
-            sub_values = self.insert_values(12, 1, values, three_NC, new_sheet)
+            # 插入试验号
+            sub_values = self.insert_values(
+                12, 1, values, three_NC, new_sheet)
             sub_values = self.insert_values(
                 22, 1, sub_values, three_NC, new_sheet)
             self.insert_values(32, 1, sub_values, three_NC, new_sheet)
@@ -140,6 +141,7 @@ class ExecuteGenerator:
         """
         now_row_cnt = row_cnt
         now_col_cnt = col_cnt
+
         for i, value in enumerate(values):
             sheet.write(now_row_cnt, now_col_cnt, value)
             now_row_cnt += 1
