@@ -3,7 +3,7 @@ import xlwt
 from packs.rule import Rule
 
 
-class ExecuteGenerator:
+class GeneratorExecute:
     def __init__(self, source_file, template_file, rule_file, output_folder):
         self.source_file = source_file
         self.template_file = template_file

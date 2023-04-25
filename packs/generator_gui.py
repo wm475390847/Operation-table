@@ -3,10 +3,10 @@ from tkinter import messagebox
 from tkinter import ttk
 from ttkthemes import ThemedStyle
 from PIL import Image, ImageTk
-from packs.execute_generator import ExecuteGenerator
+from packs.generator_execute import GeneratorExecute
 
 
-class FileSelector:
+class GeneratorGui:
     def __init__(self, master):
         self.master = master
         self.sources = []
@@ -163,7 +163,7 @@ class FileSelector:
 
         # 执行excel_transform模块中的相关函数
         # 在此处传递所需参数
-        eg = ExecuteGenerator(source_file, template_file,
+        eg = GeneratorExecute(source_file, template_file,
                               rule_file, output_folder)
         eg.execute()
 

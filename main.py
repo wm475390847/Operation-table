@@ -1,7 +1,6 @@
 import tkinter
 
-from packs.gui_generator import FileSelector
-from packs.execute_generator import ExecuteGenerator
+from packs.generator_gui import GeneratorGui
 
 
 if __name__ == "__main__":
@@ -9,7 +8,7 @@ if __name__ == "__main__":
     root.geometry("600x350")
     root.title("操作表生成器")
 
-    fs = FileSelector(root)
+    fs = GeneratorGui(root)
     root.mainloop()
 
     # 通过FileSelector实例获取选择的文件列表
