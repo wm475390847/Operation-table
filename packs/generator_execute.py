@@ -1,5 +1,6 @@
 import xlrd
 import xlwt
+from xlutils.copy import copy
 from packs.rule import Rule
 
 
@@ -33,18 +34,15 @@ class GeneratorExecute:
         for key in list(result_dict.keys()):
             value_list = result_dict[key]
             # 数据量大时需要分表，具体分表条件看是否有3个NC
-            limit = (
-                267
-                if rule_dict.get(key, {}).get("three_NC", False)
-                else 270
-                if key in rule_dict
-                else 270
-            )
+            if key not in rule_dict or not rule_dict[key].three_NC:
+                limit = 270
+            else:
+                limit = 267
             if len(value_list) > limit:
                 print(f"类型：{key} 对应的 value 长度 > {limit}")
                 # 将列表分成270个一份，组合成数组
                 sub_arrays = [
-                    value_list[x: x + limit] for x in range(0, len(value_list), limit)
+                    value_list[x : x + limit] for x in range(0, len(value_list), limit)
                 ]
                 # 使用字典推导式更新原字典
                 result_dict = {
@@ -88,16 +86,9 @@ class GeneratorExecute:
         """
         for key, values in result_dict.items():
             # 加载模板 Excel 文件
-            wb = xlrd.open_workbook(self.template_file)
-            sheet = wb.sheet_by_index(0)
-            # 创建一个新的sheet
-            new_wb = xlwt.Workbook()
-            new_sheet = new_wb.add_sheet("Sheet1", cell_overwrite_ok=True)
-            # 向新工作表中写入数据
-            for i in range(sheet.nrows):
-                for j in range(sheet.ncols):
-                    new_sheet.write(i, j, sheet.cell(i, j).value)
-
+            wb = xlrd.open_workbook(self.template_file, formatting_info=True)
+            new_wb = copy(wb)
+            new_sheet = new_wb.get_sheet(0)
             # 取出对应的规则
             a = key.split("_")[0] if "_" in key else key
             rule = rule_dict.get(a)
@@ -106,7 +97,10 @@ class GeneratorExecute:
                 new_sheet.write(8, 0, rule.formula_mode)
 
                 # 插入方块
-                for i, diamond in zip(range(40, 47, 2), [rule.diamond_1, rule.diamond_2, rule.diamond_3, rule.diamond_4]):
+                for i, diamond in zip(
+                    range(40, 47, 2),
+                    [rule.diamond_1, rule.diamond_2, rule.diamond_3, rule.diamond_4],
+                ):
                     new_sheet.write(i, 0, diamond)
 
                 # 插入英文代号
@@ -119,10 +113,8 @@ class GeneratorExecute:
                 three_NC = ""  # 如果找不到对应规则则将 three_NC 设置为空字符串
 
             # 插入试验号
-            sub_values = self.insert_values(
-                12, 1, values, three_NC, new_sheet)
-            sub_values = self.insert_values(
-                22, 1, sub_values, three_NC, new_sheet)
+            sub_values = self.insert_values(12, 1, values, three_NC, new_sheet)
+            sub_values = self.insert_values(22, 1, sub_values, three_NC, new_sheet)
             self.insert_values(32, 1, sub_values, three_NC, new_sheet)
             # 将新工作簿保存为一个新的 Excel 文件
             filename = self.output_folder + "/{}.xls".format(f"{key}操作表")
@@ -139,11 +131,11 @@ class GeneratorExecute:
         :param sheet:表格
         :return 刨除数组中已经插入的数据后的子数组
         """
+        style = self.get_style()
         now_row_cnt = row_cnt
         now_col_cnt = col_cnt
-
         for i, value in enumerate(values):
-            sheet.write(now_row_cnt, now_col_cnt, value)
+            sheet.write(now_row_cnt, now_col_cnt, value, style)
             now_row_cnt += 1
             if now_row_cnt > row_cnt + 7:
                 now_col_cnt += 1
@@ -156,9 +148,18 @@ class GeneratorExecute:
                 break
         else:
             return []
-        if three_NC:
-            sheet.write(row_cnt + 1, col_cnt + 11, "NC")
-        return values[i + 1:]
+        return values[i + 1 :]
+
+    def get_style(self):
+        # 创建一个字体对象
+        font = xlwt.Font()
+        font.name = "宋体"
+        font.height = 9 * 20  # 字体大小需要乘以 20
+
+        # 创建一个样式对象，并将字体应用到其中
+        style = xlwt.XFStyle()
+        style.font = font
+        return style
 
     def execute(self):
         print("========开始执行========")
